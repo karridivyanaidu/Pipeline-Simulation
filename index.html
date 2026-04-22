@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plaksha Orbital Pipeline Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-logo">
+        <div class="orbit-icon">
+          <div class="orbit-ring"></div>
+          <div class="orbit-core"></div>
+        </div>
+        <div class="header-text">
+          <span class="header-title">Plaksha Orbital Pipeline Deck</span>
+          <span class="header-sub">CS2011 · Pipeline Hazard Simulator · Ankur Nahar</span>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="badge-dot"></span>
+        <span>Simulation Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-layout">
+
+    <!-- LEFT PANEL: Controls -->
+    <aside class="control-panel">
+
+      <!-- Step 1: Instructions -->
+      <section class="panel-section">
+        <div class="section-label"><span class="step-num">01</span> Instruction Sequence</div>
+
+        <div class="instr-count-row">
+          <label for="instrCount">Number of Instructions</label>
+          <div class="count-control">
+            <button id="btnDecCount" class="count-btn">−</button>
+            <input type="number" id="instrCount" min="1" max="10" value="4" />
+            <button id="btnIncCount" class="count-btn">+</button>
+          </div>
+        </div>
+
+        <div id="instrInputs" class="instr-inputs-list"></div>
+
+        <div class="format-hint">
+          <strong>Supported:</strong> ADD R1, R2, R3 &nbsp;|&nbsp; SUB R4, R1, R5 &nbsp;|&nbsp; LW R1, 0(R2) &nbsp;|&nbsp; SW R1, 0(R2)
+        </div>
+      </section>
+
+      <!-- Step 2: Pipeline Config -->
+      <section class="panel-section">
+        <div class="section-label"><span class="step-num">02</span> Pipeline Configuration</div>
+
+        <div class="pipeline-selector">
+          <label class="pipeline-option" id="opt4stage">
+            <input type="radio" name="pipelineType" value="4" checked />
+            <div class="pipeline-card">
+              <div class="pipeline-card-title">4-Stage</div>
+              <div class="pipeline-stages">IF → ID → EX → MEM/WB</div>
+            </div>
+          </label>
+          <label class="pipeline-option" id="opt5stage">
+            <input type="radio" name="pipelineType" value="5" />
+            <div class="pipeline-card">
+              <div class="pipeline-card-title">5-Stage</div>
+              <div class="pipeline-stages">IF → ID → EX → MEM → WB</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="forwarding-toggle">
+          <label class="toggle-label">
+            <input type="checkbox" id="forwardingEnabled" />
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">Enable Data Forwarding</span>
+          </label>
+          <p class="toggle-desc">When enabled, results are forwarded from EX/MEM stages to reduce stalls.</p>
+        </div>
+      </section>
+
+      <!-- Step 3: Controls -->
+      <section class="panel-section">
+        <div class="section-label"><span class="step-num">03</span> Simulation Controls</div>
+
+        <div class="sim-controls">
+          <button id="btnRun" class="btn btn-primary">▶ Run Simulation</button>
+          <button id="btnStep" class="btn btn-secondary">⏭ Step Cycle</button>
+          <button id="btnReset" class="btn btn-ghost">↺ Reset</button>
+        </div>
+
+        <div class="cycle-info" id="cycleInfo" style="display:none;">
+          <span class="cycle-label">Current Cycle:</span>
+          <span class="cycle-val" id="cycleVal">0</span>
+          <span class="cycle-total" id="cycleTotal"></span>
+        </div>
+      </section>
+
+      <!-- Hazard Legend -->
+      <section class="panel-section legend-section">
+        <div class="section-label">Legend</div>
+        <div class="legend-grid">
+          <div class="legend-item"><span class="legend-cell stage-normal">IF</span> Fetch</div>
+          <div class="legend-item"><span class="legend-cell stage-normal">ID</span> Decode</div>
+          <div class="legend-item"><span class="legend-cell stage-normal">EX</span> Execute</div>
+          <div class="legend-item"><span class="legend-cell stage-normal">MEM</span> Memory</div>
+          <div class="legend-item"><span class="legend-cell stage-normal">WB</span> Write Back</div>
+          <div class="legend-item"><span class="legend-cell stage-stall">STALL</span> Pipeline Stall</div>
+          <div class="legend-item"><span class="legend-cell stage-forward">FWD</span> Forwarding</div>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- RIGHT PANEL: Output -->
+    <section class="output-panel">
+
+      <!-- Hazard Report -->
+      <div id="hazardReport" class="hazard-report" style="display:none;">
+        <div class="hazard-report-header">
+          <span class="hazard-icon">⚠</span>
+          <span class="hazard-title">Detected Hazards</span>
+        </div>
+        <ul id="hazardList" class="hazard-list"></ul>
+      </div>
+
+      <!-- Pipeline Table -->
+      <div class="table-wrapper">
+        <div class="table-header-row">
+          <h2 class="table-title">Pipeline Execution Table</h2>
+          <div class="pipeline-type-badge" id="pipelineBadge"></div>
+        </div>
+        <div id="tableContainer" class="table-container">
+          <div class="empty-state">
+            <div class="empty-icon">⚙</div>
+            <p>Configure your instructions and run the simulation to see the pipeline execution.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forwarding info -->
+      <div id="forwardingReport" class="forwarding-report" style="display:none;">
+        <div class="forwarding-report-header">
+          <span class="fwd-icon">⚡</span>
+          <span class="fwd-title">Data Forwarding Applied</span>
+        </div>
+        <ul id="forwardingList" class="forwarding-list"></ul>
+      </div>
+
+      <!-- Stats bar -->
+      <div id="statsBar" class="stats-bar" style="display:none;">
+        <div class="stat-card">
+          <div class="stat-val" id="statCycles">—</div>
+          <div class="stat-label">Total Cycles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statInstrs">—</div>
+          <div class="stat-label">Instructions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statStalls">—</div>
+          <div class="stat-label">Stall Cycles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statHazards">—</div>
+          <div class="stat-label">RAW Hazards</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statCPI">—</div>
+          <div class="stat-label">Effective CPI</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="simulator.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>
